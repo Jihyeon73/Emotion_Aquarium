@@ -1,16 +1,73 @@
-# React + Vite
+# My Widget - 크롬 확장 프로그램
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+---
 
-Currently, two official plugins are available:
+## 시작하기
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. 클론
 
-## React Compiler
+```bash
+git clone https://github.com/유저명/레포이름.git
+cd 레포이름
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. 패키지 설치
 
-## Expanding the ESLint configuration
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 3. 빌드
+
+```bash
+npm run build
+```
+
+### 4. 크롬에 설치
+
+1. 크롬 주소창에 `chrome://extensions/` 입력
+2. 우측 상단 **개발자 모드** ON
+3. **압축해제된 확장 프로그램 로드** 클릭
+4. 프로젝트 폴더 안의 `dist/` 폴더 선택
+
+### 5. 실행
+
+아무 웹사이트 접속 후 우측 상단 확장 프로그램 아이콘 클릭
+
+---
+
+## 개발
+
+코드 수정 후 아래 순서로 반영
+
+```bash
+npm run build
+```
+
+`chrome://extensions/` 에서 🔄 새로고침 버튼 클릭
+
+---
+
+## 폴더 구조
+
+```
+my-extension/
+├── manifest.json         # 확장 프로그램 설정
+├── vite.config.ts
+├── public/
+│   └── icons/            # 확장 프로그램 아이콘
+└── src/
+    ├── popup/
+    │   ├── index.tsx     # 위젯 마운트 진입점
+    │   └── Popup.tsx    # 위젯 UI
+    └── background/
+        └── index.ts      # 서비스 워커
+```
+
+---
+
+## 기술 스택
+
+- React + TypeScript
+- Vite
+- CRXJS (크롬 확장 빌드 플러그인)
