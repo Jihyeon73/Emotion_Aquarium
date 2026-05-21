@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "My Widget",
+  "version": "1.0.0",
+
+  "permissions": ["storage"],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+
+  "icons": {
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "web_accessible_resources": [
+    {
+      "matches": ["<all_urls>"],
+      "resources": ["fishes/*"]
+    }
+  ]
+}
