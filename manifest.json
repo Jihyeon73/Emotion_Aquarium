@@ -21,7 +21,7 @@
   "web_accessible_resources": [
     {
       "matches": ["<all_urls>"],
-      "resources": ["fishes/*"]
+      "resources": ["src/fonts/*.woff2"]
     }
   ]
 }
