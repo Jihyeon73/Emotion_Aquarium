@@ -65,7 +65,7 @@ export default function FishItem({ item, onClick }: Props) {
   return (
     <img
       src={item.imageUrl}
-      onClick={onClick}
+      onClick={(e) => { e.stopPropagation(); onClick() }}
       style={{
         position: 'absolute',
         left: pos.x,

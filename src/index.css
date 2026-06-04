@@ -5,4 +5,9 @@
 
 * {
   font-family: 'DungGeunMo', sans-serif;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #ACD473;
 }

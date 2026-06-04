@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { AquariumItem, ItemType } from './types'
 import FishItem from './FishItem'
 import RockItem, { getRockX } from './RockItem'
 
 
-const fish = chrome.runtime.getURL('fishes/fish1.png')
+const bg = chrome.runtime.getURL('./BGImg.png')
+const addBtn = chrome.runtime.getURL('icons/addBtn.png')
+const delBtn = chrome.runtime.getURL('icons/delBtn.png')
 
-type PanelMode = null | 'add' | 'remove'
+
+type PanelMode = null | 'add' | 'remove' | 'item'
 
 export default function Popup() {
 
@@ -16,33 +19,43 @@ export default function Popup() {
   const [feeling, setFeeling] = useState<'good'|'bad'>('good')
   const [element, setElement] = useState<AquariumItem | null>(null)
   const [memoVisible, setMemoVisible] = useState(false)
+  const [visible, setVisible] = useState(true)
+  const [limitAlert, setLimitAlert] = useState(false)
 
 
-  // 스타일
-  const AQUARIUM_HEIGHT = 200 //어항 높이
-  const PANEL_HEIGHT = mode !== null ? 80 : 0 //패널 높이
-  const totalHeight = AQUARIUM_HEIGHT + PANEL_HEIGHT + 80 //패널 클릭시 늘어나는 높이 계산
+  const AQUARIUM_HEIGHT = 200
 
-  // 물고기 돌 
+  // 물고기 돌
   const [items, setItems] = useState<AquariumItem[]>([])
-  const FISH_IMAGES = ['fishes/fish_1.png','fishes/fish_2.png','fishes/fish_3.png','fishes/fish_4.png','fishes/fish_5.png','fishes/fish_6.png','fishes/fish_7.png','fishes/fish_8.png' ]
+  const FISH_IMAGES = ['fishes/fish_2.png','fishes/fish_3.png','fishes/fish_4.png','fishes/fish_5.png','fishes/fish_6.png','fishes/fish_7.png','fishes/fish_8.png' ]
   const ROCKS_IMAGES = ['rocks/rock_1.png', 'rocks/rock_2.png','rocks/rock_3.png' ]
 
-  // 이미지 랜덤으로 넣기
-  const getRandomImage = (type: ItemType) => {
+  const fishIndexRef = useRef(0)
+  const rockIndexRef = useRef(0)
+
+  const getNextImage = (type: ItemType) => {
     const list = type === 'fish' ? FISH_IMAGES : ROCKS_IMAGES
-    const random = list[Math.floor(Math.random() * list.length)]
-    return chrome.runtime.getURL(random)
+    const ref = type === 'fish' ? fishIndexRef : rockIndexRef
+    const image = list[ref.current % list.length]
+    ref.current += 1
+    return chrome.runtime.getURL(image)
   }
 
 
   // 물고기,돌 추가하기
   const handleCreate = () => {
     const type : ItemType = feeling === 'good' ? 'fish' : 'rock'
+    const typeCount = items.filter(i => i.type === type).length
+    if (typeCount >= 7) {
+      setMode(null)
+      setLimitAlert(true)
+      setTimeout(() => setLimitAlert(false), 2500)
+      return
+    }
     const newItem: AquariumItem = {
       id :Date.now(),
       type,
-      imageUrl: getRandomImage(type),
+      imageUrl: getNextImage(type),
       memo,
       createdAt: new Date().toLocaleDateString('ko-KR'),
       rockX: type === 'rock' ? getRockX(items) : undefined,
@@ -51,6 +64,7 @@ export default function Popup() {
     setItems(updated)
     chrome.storage.local.set({ items: updated })
     setMode(null)
+    setMemo('')
   }
 
   // 삭제하기
@@ -73,43 +87,85 @@ export default function Popup() {
   const handleItemClick = (item: AquariumItem) => {
       if (mode === 'remove') {
         setElement(item)
-      } else {
+      } else if(mode === null || mode === 'item'){
         setElement(item)
-        setMemoVisible(true)
-        setTimeout(() => setMemoVisible(false), 2000)   // 2초 후 페이드아웃 시작
-        setTimeout(() => setElement(null), 2500)         // 페이드아웃 끝나면 제거
+        setMode('item')
       }
     }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(prev => !prev)
+    }, 1000) // 1초마다 토글
+    return () => clearInterval(interval)
+  }, [])
 
 
   return (
     <div style={{
-      width: '320px',
-      height: `${totalHeight}px`,
-      background: '#fff',
+      width: '360px',
+      height: 'auto',
+      // background: '#fff',
       boxSizing: 'border-box',
       overflow: 'hidden',
+      fontSize:'16px'
     }}>
       {/* 어항 */}
       <div
+        onClick={() => setMode(null)}
         style={{
           height: `${AQUARIUM_HEIGHT}px`,
-          backgroundColor:'#ACD473',
+          backgroundImage:`url(${bg})`,
+          backgroundSize:'cover',
+          backgroundPosition:'center',
+          backgroundRepeat:'no-repeat',
           position:'relative'
         }}>
-          {element && (
+          {/* {element ? (
             <div style={{
               position: 'absolute',
-              top: '10px',
+              top: '-4px',
               left: '50%',
               transform: 'translate(-50%, 50%)',
               textAlign: 'center',
-              opacity: memoVisible ? 1 : 0,
               transition: 'opacity 0.5s ease',
+              fontSize:'14px',
+              backgroundColor:'#ACD473',
+              padding:'0 14px'
             }}>
-              {element.memo}
+              {element.memo.length > 20 ? element.memo.slice(0, 20) + '...' : element.memo}
+            </div>
+          ) : ( */}
+          {limitAlert && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              textAlign: 'center',
+              fontSize: '13px',
+              backgroundColor: 'rgba(0,0,0,0.55)',
+              color: '#fff',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              zIndex: 10,
+              pointerEvents: 'none',
+            }}>
+              Your aquarium is full!
             </div>
           )}
+            <div style={{
+              position: 'absolute',
+              top: '-4px',
+              left: '50%',
+              transform: 'translate(-50%, 50%)',
+              textAlign: 'center',
+              fontSize:'14px',
+              transition: 'opacity 0.8s ease',
+            }}>
+              Click your fish
+            </div>
+        
 
           {items.map((item) => (
             item.type === 'fish'
@@ -124,66 +180,168 @@ export default function Popup() {
                   onClick={() => handleItemClick(item)}
                 />
           ))}
-
-
         </div>
 
       {/* 추가, 삭제 버튼 */}
-      <div className='flex gap-2'>
-        <button onClick={() => setMode(prev => prev === 'add' ? null : 'add')}>+</button>
-        <button onClick={() => setMode(prev => prev === 'remove' ? null : 'remove')}>-</button>
+      <div 
+        style={{
+          display:'flex',
+          gap:'4px',
+          position:'absolute',
+          top:'32px',
+          right:'16px'
+        }}
+      >
+        <button 
+          style={buttonStyle}
+          onClick={() => setMode(prev => prev === 'add' ? null : 'add')}>
+          <img 
+            style={{
+              width:'10px',
+              height:'auto'
+            }}
+          src={addBtn} alt="" />
+        </button>
+        <button 
+          style={buttonStyle}
+          onClick={() => (setMode(prev => prev === 'remove' ? null : 'remove'), setElement(null))}>
+          <img 
+            style={{
+              width:'10px',
+              height:'auto'
+            }}
+            src={delBtn} alt="" />
+        </button>
       </div>
 
       {/* 버튼 클릭에 따른 패널 */}
       {mode === 'add' && (
         <div style={panelStyle}>
-          <span>Are you sure<br></br> you want to Let this fish Go?</span>
-          <div>
-            <div className='flex justify-between'>
-              <span>express your feeling!</span>
-              <div>
-                <input type="radio" value="good" checked={feeling === 'good'} onChange={() => setFeeling('good')} />
-                <input type="radio" value="bad" checked={feeling === 'bad'} onChange={() => setFeeling('bad')} />
+          <div style={{ width:'100%',padding:'0 24px'}}>
+            <div style={{width:'100%',display:'flex', justifyContent:'space-between', marginBottom:'20px'}}>
+              <span>Express your feeling!</span>
+              <div style={radioBtn}>
+                <label style={radioBtn}>
+                  <input type="radio" value="good" checked={feeling === 'good'} onChange={() => setFeeling('good')} />
+                  good
+                </label>
+                <label style={radioBtn}>
+                  <input type="radio" value="good" checked={feeling === 'bad'} onChange={() => setFeeling('bad')} />
+                  bad
+                </label>
               </div>
             </div>
             <div>
-              <textarea value={memo} onChange={(e) => setMemo(e.target.value)}></textarea>
+              <input
+                style={{
+                  width:'100%',
+                  resize:'none',
+                  overflow:'hidden'
+                }}
+                type='text'
+                maxLength={80}
+                value={memo} 
+                onChange={(e) => setMemo(e.target.value)}/>
             </div>
           </div>
-          <button onClick={handleCreate}>Create</button>
+          <button 
+            style={{width:'100px', fontSize:'16px'}}
+            onClick={handleCreate}>Create</button>
         </div>
       )}
 
       {mode === 'remove' && (
         <div style={panelStyle}>
-          <span>Are you sure<br></br> you want to Let this fish Go?</span>
-          <div>
             {element ? (
-              <div>
-                <span>{element.memo}</span>
-                <span>{element.createdAt}</span>
+              <div style={{ width:'100%', padding:'0 24px', display:'flex', gap:'10px', flexDirection:'column', alignItems:'center'}}>
+                <div style={{marginBottom:'10px', width:'100%'}}>Are you sure<br></br> you want to Let this fish Go?</div>
+                <div style={{width:'100%'}}>
+                  <div 
+                    style={{
+                        display:'flex',
+                        justifyContent:'space-between',
+                        marginBottom:'10px',
+                        width:'100%'
+                    }}
+                  >
+                    <span>My Memo</span>
+                    <span>{element.createdAt}</span>
+                  </div>
+                  <div 
+                    style={{
+                        wordBreak:'break-word',
+                        height:'auto',
+                        width:'100%'
+                        
+                    }}
+                  >
+                    {element.memo}</div>
+                </div>
+                <button 
+                  style={{width:'100px', fontSize:'16px'}}
+                  onClick={handleRemove}>Good Bye</button>
+
               </div>
             ) : (
               <div>
-                <h1>삭제할 물고기를 클릭해주세요</h1>
+                <div style={{textAlign:'center'}}>Please click the fish you want to delete</div>
               </div>
             )}
           </div>
-          <button onClick={handleRemove}>Good Bye</button>
+      )}
+
+      {mode === 'item' && (
+        <div
+          onClick={() => { setMode(null); setElement(null) }}
+          style={{ position: 'fixed', inset: 0, zIndex: 0 }}
+        />
+      )}
+
+      {mode === 'item' && element && (
+        <div style={{ ...panelStyle, position: 'relative', zIndex: 1 }}>
+          <div style={{ width:'100%', padding:'0 24px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'10px', width:'100%' }}>
+              <span>My Memo</span>
+              <span>{element.createdAt}</span>
+            </div>
+            <div style={{ wordBreak:'break-word', width:'100%' }}>
+              {element.memo}
+            </div>
+          </div>
         </div>
       )}
 
-      
 
-      
+   
     </div>
   )
 }
 
 
 const panelStyle : React.CSSProperties = {
-  // background: '#f9f9f9',
-  borderRadius: '10px',
-  padding: '12px',
-  border: '1px solid #eee',
+  padding:'14px 0',
+  display:'flex',
+  justifyContent:'space-between',
+  alignItems:'center',
+  gap:'24px',
+  flexDirection:'column',
+  width:'100%'
+}
+
+
+const buttonStyle : React.CSSProperties = {
+  width:'18px',
+  height:'18px',
+  display:'flex',
+  alignItems: 'center',
+  justifyContent:'center',
+  backgroundColor:'#8FB35D',
+  border: 'none',
+  outline: 'none' 
+}
+
+const radioBtn : React.CSSProperties = {
+  display : 'flex',
+  flexDirection: 'row',
+  alignItems: 'center'
 }

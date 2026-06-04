@@ -1,0 +1,5 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx"  // 이게 있어야 함
+  }
+}
