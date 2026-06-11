@@ -21,6 +21,7 @@ export default function Popup() {
   const [memoVisible, setMemoVisible] = useState(false)
   const [visible, setVisible] = useState(true)
   const [limitAlert, setLimitAlert] = useState(false)
+  const [blankAlert, setBlankAlert] = useState(false)
 
 
   const AQUARIUM_HEIGHT = 200
@@ -44,6 +45,12 @@ export default function Popup() {
 
   // 물고기,돌 추가하기
   const handleCreate = () => {
+    if (memo.length === 0) {
+      setBlankAlert(true)
+      setTimeout(() => setBlankAlert(false), 2500)
+      return
+    }
+
     const type : ItemType = feeling === 'good' ? 'fish' : 'rock'
     const typeCount = items.filter(i => i.type === type).length
     if (typeCount >= 7) {
@@ -137,23 +144,16 @@ export default function Popup() {
             </div>
           ) : ( */}
           {limitAlert && (
-            <div style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              textAlign: 'center',
-              fontSize: '13px',
-              backgroundColor: 'rgba(0,0,0,0.55)',
-              color: '#fff',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              zIndex: 10,
-              pointerEvents: 'none',
-            }}>
+            <div style={alertStyle}>
               Your aquarium is full!
             </div>
           )}
+          {blankAlert && (
+            <div style={alertStyle}>
+              Wirte your emotion!
+            </div>
+          )}
+
             <div style={{
               position: 'absolute',
               top: '-4px',
@@ -344,4 +344,19 @@ const radioBtn : React.CSSProperties = {
   display : 'flex',
   flexDirection: 'row',
   alignItems: 'center'
+}
+
+const alertStyle : React.CSSProperties = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  textAlign: 'center',
+  fontSize: '13px',
+  backgroundColor: 'rgba(0,0,0,0.55)',
+  color: '#fff',
+  padding: '8px 16px',
+  borderRadius: '8px',
+  zIndex: 10,
+  pointerEvents: 'none',
 }
