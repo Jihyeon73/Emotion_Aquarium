@@ -31,20 +31,23 @@ export default function Popup() {
   const FISH_IMAGES = ['fishes/fish_2.png','fishes/fish_3.png','fishes/fish_4.png','fishes/fish_5.png','fishes/fish_6.png','fishes/fish_7.png','fishes/fish_8.png' ]
   const ROCKS_IMAGES = ['rocks/rock_1.png', 'rocks/rock_2.png','rocks/rock_3.png' ]
 
-  const fishIndexRef = useRef(0)
-  const rockIndexRef = useRef(0)
-
-  const getNextImage = (type: ItemType) => {
+  const getNextImage = async (type: ItemType) => {
     const list = type === 'fish' ? FISH_IMAGES : ROCKS_IMAGES
-    const ref = type === 'fish' ? fishIndexRef : rockIndexRef
-    const image = list[ref.current % list.length]
-    ref.current += 1
-    return chrome.runtime.getURL(image)
+    const key = type === 'fish' ? 'fishIndex' : 'rockIndex'
+
+    // 저장된 인덱스 불러오기
+    const result = await chrome.storage.local.get(key)
+    const currentIndex = result[key] ?? 0
+
+    // 다음 인덱스 저장
+    await chrome.storage.local.set({ [key] : currentIndex + 1})
+
+    return chrome.runtime.getURL(list[currentIndex % list.length])
   }
 
 
   // 물고기,돌 추가하기
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (memo.length === 0) {
       setBlankAlert(true)
       setTimeout(() => setBlankAlert(false), 2500)
@@ -62,7 +65,7 @@ export default function Popup() {
     const newItem: AquariumItem = {
       id :Date.now(),
       type,
-      imageUrl: getNextImage(type),
+      imageUrl: await getNextImage(type),
       memo,
       createdAt: new Date().toLocaleDateString('ko-KR'),
       rockX: type === 'rock' ? getRockX(items) : undefined,
@@ -128,21 +131,7 @@ export default function Popup() {
           backgroundRepeat:'no-repeat',
           position:'relative'
         }}>
-          {/* {element ? (
-            <div style={{
-              position: 'absolute',
-              top: '-4px',
-              left: '50%',
-              transform: 'translate(-50%, 50%)',
-              textAlign: 'center',
-              transition: 'opacity 0.5s ease',
-              fontSize:'14px',
-              backgroundColor:'#ACD473',
-              padding:'0 14px'
-            }}>
-              {element.memo.length > 20 ? element.memo.slice(0, 20) + '...' : element.memo}
-            </div>
-          ) : ( */}
+
           {limitAlert && (
             <div style={alertStyle}>
               Your aquarium is full!
@@ -254,7 +243,10 @@ export default function Popup() {
         <div style={panelStyle}>
             {element ? (
               <div style={{ width:'100%', padding:'0 24px', display:'flex', gap:'10px', flexDirection:'column', alignItems:'center'}}>
-                <div style={{marginBottom:'10px', width:'100%'}}>Are you sure<br></br> you want to Let this fish Go?</div>
+                <div style={{marginBottom:'10px', width:'100%'}}>
+                  Are you sure<br></br> you want to Let this 
+                  {element.type === 'fish' ? " fish" : " rock"} Go?
+                </div>
                 <div style={{width:'100%'}}>
                   <div 
                     style={{
