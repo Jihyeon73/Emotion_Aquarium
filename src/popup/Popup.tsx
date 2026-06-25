@@ -22,7 +22,7 @@ export default function Popup() {
   const [visible, setVisible] = useState(true)
   const [limitAlert, setLimitAlert] = useState(false)
   const [blankAlert, setBlankAlert] = useState(false)
-
+  const [isSelected, setIsSelected] = useState(null)
 
   const AQUARIUM_HEIGHT = 200
 
@@ -161,6 +161,7 @@ export default function Popup() {
               ? <FishItem
                   key={item.id}
                   item={item}
+                  isSelected={element?.id === item.id && mode === 'item'}
                   onClick={() => handleItemClick(item)}
                 />
               : <RockItem
@@ -276,7 +277,7 @@ export default function Popup() {
               </div>
             ) : (
               <div>
-                <div style={{textAlign:'center'}}>Please click the fish you want to delete</div>
+                <div style={{textAlign:'center'}}>Please click the fish or rock <br></br>you want to delete</div>
               </div>
             )}
           </div>
