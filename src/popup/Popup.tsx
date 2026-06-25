@@ -122,7 +122,7 @@ export default function Popup() {
     }}>
       {/* 어항 */}
       <div
-        onClick={() => setMode(null)}
+        onClick={() => mode != "remove" ? setMode(null) : setMode("remove")}
         style={{
           height: `${AQUARIUM_HEIGHT}px`,
           backgroundImage:`url(${bg})`,
