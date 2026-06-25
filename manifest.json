@@ -1,12 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "My Widget",
-  "version": "1.0.0",
+  "name": "Test Memory Aquarium",
+  "version": "1.0.1",
 
   "permissions": ["storage"],
 
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16_trans.png",
+      "48": "icons/icon48_trans.png",
+      "128": "icons/icon128_trans.png"
+    }
   },
 
 

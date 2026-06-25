@@ -7,6 +7,8 @@ type Props = {
 }
 
 export default function FishItem({ item, onClick }: Props) {
+
+  // 헤엄치는 상태값
   const [pos, setPos] = useState({ x: 0, y: 0 })
   const [flipped, setFlipped] = useState(false)
   const stateRef = useRef({
@@ -19,6 +21,7 @@ export default function FishItem({ item, onClick }: Props) {
     waiting: false,
   })
 
+  // 헤엄치는 움직임
   useEffect(() => {
     let animFrame: number
     const s = stateRef.current
