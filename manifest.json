@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Test Memory Aquarium",
+  "name": "Memory Aquarium",
   "version": "1.0.1",
 
   "permissions": ["storage"],
